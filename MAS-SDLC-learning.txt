@@ -503,3 +503,355 @@ Step 1.4 — Configure Root URLs
   Response: JSON list of tickets
 
   ---
+
+
+════════════════════════════════════════════════════════════════
+PHASE 4 — DATABASE DESIGN (Wiganz designs from scratch)
+════════════════════════════════════════════════════════════════
+
+The question we started from:
+"This system does one thing: a ticket comes in → an agent works
+on it → the agent produces output → we log what happened.
+What do you need to store?"
+
+---
+Step 1 — Discovering the 3 Entities
+
+Wiganz identified:
+  1. Ticket    → the WORK to be done
+  2. AgentRun  → the LOG of who did it, how long, how much cost
+  3. Artifact  → the OUTPUT produced by an agent (Wiganz figured
+                 out this needs to be its own separate thing)
+
+Why Artifact is separate (not inside Ticket or AgentRun):
+  One ticket can have MULTIPLE outputs:
+  - Research agent → research.md
+  - Builder agent  → auth_code.py
+  - Test agent     → test_results.md
+  All three belong to the same ticket. If you delete the ticket,
+  all artifacts go with it. Artifact is its own entity.
+
+---
+Step 2 — The Relationships
+
+  Ticket ──────→ many Artifacts   (one ticket, many outputs)
+  Ticket ──────→ many AgentRuns   (one ticket, many runs)
+
+  Artifact.ticket = ForeignKey → Ticket owns the artifact
+  AgentRun.ticket = ForeignKey → Ticket owns the run
+
+  ON DELETE CASCADE → delete ticket = delete all its artifacts
+  and agent runs too (orphan records are useless)
+
+---
+Step 3 — Designing the Ticket fields
+
+Wiganz designed these himself:
+  - title            → what's the work?
+  - description      → full context for the agent
+  - status           → where is this ticket in its lifecycle?
+  - created_at       → when was it created? (set ONCE, never changes)
+  - updated_at       → when was it last touched? (updates every save)
+  - paperclip_issue_id → the ID of the matching Issue in Paperclip
+
+Two more added:
+  - id (UUID)        → primary key
+  - priority         → low / medium / high / critical
+
+---
+Step 4 — Paperclip Issue vs Django Ticket
+
+A Paperclip Issue = a unit of work that Paperclip's agents pick up.
+Our Django Ticket = OUR canonical record of the same work.
+
+They are parallel records of the same thing:
+
+  Django Ticket (our DB)          Paperclip Issue (their system)
+  ──────────────────────          ──────────────────────────────
+  id: uuid-abc-123                id: "issue-101"
+  title: "Research JWT auth" ←──► title: "Research JWT auth"
+  status: research_in_progress    status: in_progress
+
+paperclip_issue_id = "issue-101"
+  → stored on our Ticket after we push it to Paperclip
+  → starts as NULL (not yet synced)
+  → when Paperclip fires a webhook "issue-101 is done" →
+    Django looks up which Ticket has paperclip_issue_id="issue-101"
+
+WHY Django owns the canonical copy (not Paperclip):
+  "Django is the brain. Paperclip is the hands.
+   You can always get new hands. You cannot get a new brain."
+  If Paperclip dies tomorrow → our data is safe in PostgreSQL.
+
+---
+Step 5 — Ticket Status Lifecycle (state machine)
+
+Wiganz designed this:
+  new → research_in_progress → needs_approval → approved → building
+      → build_complete → failed
+
+  failed can happen at ANY stage — not just at the end.
+  A research agent can fail. A builder can fail. failed is always
+  an escape hatch from any state.
+
+---
+Step 6 — created_at vs updated_at behavior
+
+  created_at = DateTimeField(auto_now_add=True)
+    → set ONCE when the record is first created. Never changes again.
+
+  updated_at = DateTimeField(auto_now=True)
+    → updates automatically every single time you call .save()
+
+  auto_now_add = "set it when the record is ADDED, that's it."
+  auto_now     = "set it NOW, every single save."
+
+---
+Step 7 — Designing the Artifact fields
+
+Wiganz designed these himself:
+  - id            → UUID primary key
+  - ticket        → ForeignKey → Ticket (CASCADE)
+  - artifact_type → 'research' / 'architecture' / 'code' / 'test_results'
+  - title         → name of the file (e.g. "auth-research.md")
+  - content       → the actual content (markdown, code, etc.)
+  - file_path     → path if stored on disk (for large files)
+  - agent_name    → which agent produced this
+  - created_at    → auto_now_add only (NO updated_at)
+
+Why NO updated_at on Artifact:
+  Artifacts are IMMUTABLE. Once an agent produces output, you
+  don't edit it. You create a NEW artifact instead.
+
+Why immutable instead of updating?
+  Audit trail. If an agent produces a wrong artifact, you want
+  to see: what did it produce the first time? what changed?
+  how many attempts did it take?
+  That history = organizational intelligence.
+  Overwriting destroys that data forever.
+
+  Rule: Artifact = create new, never update existing.
+
+---
+Step 8 — Designing the AgentRun fields
+
+Wiganz designed these himself:
+  - id                  → UUID primary key
+  - ticket              → ForeignKey → Ticket (CASCADE)
+  - agent_name          → which agent ran
+  - status              → running / success / failed / timeout
+  - started_at          → when the agent started
+  - finished_at         → when finished (null if still running)
+  - duration_seconds    → finished_at - started_at
+  - prompt_tokens       → input tokens sent TO the model
+  - completion_tokens   → output tokens returned FROM the model
+  - estimated_cost_usd  → our cost calculation
+  - decision_summary    → what the agent decided and WHY (plain text)
+  - error_message       → what went wrong if status = failed
+  - artifacts_produced  → JSONField: list of artifact IDs this run made
+
+Why prompt_tokens AND completion_tokens (not just total)?
+  Claude charges different rates for input vs output.
+  input:  cheaper  (what you send)
+  output: expensive (what Claude generates)
+  If you only store total → you can't calculate accurate cost.
+  Two fields = accurate billing forever.
+
+Why keep tokens/cost even though we use Claude Code CLI (subscription)?
+  Today:    Claude Code CLI → tokens = 0, cost = 0 (subscription)
+  Tomorrow: Boss says "switch to Claude API" → tokens matter
+  Spec 2:   Multiple agents, different models → cost tracking critical
+  The spec says agent runtime is FLEXIBLE and SWAPPABLE.
+  Fields cost nothing to store zeros. Removing them later = painful
+  migration.
+
+---
+Step 9 — Why AgentRun is NOT duplicate with Paperclip's heartbeat_run
+
+Verified from Paperclip source code
+(server/src/routes/issues.ts, costs.ts, services/plugin-database.ts):
+
+  Paperclip heartbeat_run stores:
+  - run ID, agent, duration, status
+  - token costs → for BUDGET enforcement
+  - error message (timeout, process exit code)
+  - decision ID → for approval policy transitions
+
+  Our AgentRun stores things Paperclip has NO concept of:
+  - ticket (FK → OUR Django Ticket)    ← Paperclip doesn't know our Ticket
+  - artifacts_produced                  ← Paperclip doesn't track our Artifacts
+  - decision_summary (plain text WHY)  ← Paperclip tracks decision ID, not explanation
+  - estimated_cost_usd (our calc)      ← Paperclip tracks costCents for budgets only
+
+  Paperclip run = "did the agent finish? did it timeout?
+                   how much did it cost the COMPANY?"
+
+  Our AgentRun  = "for THIS ticket, what did the agent produce,
+                   what did it decide and why, which artifacts exist,
+                   how much did WE spend per ticket type?"
+
+  Not duplicate. Different owners. Different questions. ✅
+
+---
+
+
+════════════════════════════════════════════════════════════════
+PHASE 4 — WRITING THE MODELS (core/models.py)
+════════════════════════════════════════════════════════════════
+
+---
+Why UUIDField instead of default AutoField (integer)?
+
+  Default Django ID: 1, 2, 3...
+  - /api/tickets/1/   → reveals "you're our first ticket"
+  - /api/tickets/847/ → reveals "you've created 847 tickets"
+  - Merging two databases → ID 1 from DB A collides with ID 1 from DB B
+
+  UUID: 550e8400-e29b-41d4-a716-446655440000
+  - Reveals nothing about volume
+  - Globally unique — zero collision chance when merging databases
+  - Stable across systems
+
+---
+Why nested classes Status and Priority inside Ticket?
+
+  They're containers for allowed values. Clean, not scattered:
+
+  BAD (magic strings everywhere):
+    status = models.CharField(max_length=50, default='new')
+    # 'new' is hardcoded everywhere — change it = hunt through 50 files
+
+  GOOD (one place):
+    class Status(models.TextChoices):
+        NEW = 'new', 'New'
+    status = models.CharField(choices=Status.choices, default=Status.NEW)
+    # change 'new' in ONE place. Done.
+
+---
+What is TextChoices? How does .choices work?
+
+  TextChoices is inheritance — Status INHERITS from TextChoices
+  and gets magic auto-generated properties for FREE:
+
+    class Status(models.TextChoices):
+        NEW = 'new', 'New'
+        #      ↑       ↑
+        #   stored   displayed
+        #   in DB    in admin UI
+
+  Django automatically generates:
+    Status.choices = [('new', 'New'), ('research_in_progress', ...), ...]
+    Status.NEW     = 'new'
+    Status.values  = ['new', 'research_in_progress', ...]
+    Status.labels  = ['New', 'Research In Progress', ...]
+
+  You never write .choices yourself — Django builds it from your class.
+
+---
+Why choices= on the field?
+
+  Tells Django: "only these values are allowed."
+  Used for:
+  - Admin UI dropdowns
+  - Form validation
+  - DRF serializer validation
+
+  Without it → anyone stores status='banana' in your DB. 💀
+
+---
+Inheritance pattern in Django (appears everywhere):
+
+  Child class    inherits from    Parent class
+  ─────────────────────────────────────────────
+  Status         →  TextChoices   gets .choices magic
+  Ticket         →  models.Model  gets .save(), .objects, .delete()
+  Artifact       →  models.Model  same ORM magic
+  AgentRun       →  models.Model  same ORM magic
+
+  You don't rewrite the magic — you inherit it.
+
+---
+Django Field Types — Cheat Sheet
+
+  CharField vs TextField:
+    CharField(max_length=255) → short text, has a LENGTH LIMIT
+                                 stored as VARCHAR in PostgreSQL
+                                 use for: title, name, status, agent_name
+
+    TextField()               → unlimited text, NO length limit
+                                 stored as TEXT in PostgreSQL
+                                 use for: description, content, decision_summary
+
+  Rule: know roughly how long → CharField. Could be a full doc → TextField.
+
+  ---
+  Common field options:
+
+    null=True          → DB column can store NULL (empty at DB level)
+    blank=True         → Django form/serializer accepts empty string ""
+                         always use BOTH together for optional fields
+
+    default=value      → if no value given, use this automatically
+
+    editable=False     → hidden from admin UI and forms
+                         used on id — you never manually edit a UUID
+
+    auto_now_add=True  → set to NOW when record is CREATED, never again
+    auto_now=True      → set to NOW on every single .save()
+
+    on_delete=CASCADE  → if parent (Ticket) deleted → delete all
+                         children (Artifacts, AgentRuns) too
+
+    related_name='artifacts' → reverse lookup shortcut:
+                               ticket.artifacts.all()
+                               gets all artifacts for that ticket
+
+  ---
+  Full field type cheat sheet:
+
+    Short text (title, name)      → CharField(max_length=255)
+    Long text (description)       → TextField()
+    Optional field                → null=True, blank=True
+    Timestamp on create only      → DateTimeField(auto_now_add=True)
+    Timestamp on every save       → DateTimeField(auto_now=True)
+    Decimal numbers (cost)        → DecimalField(max_digits=10, decimal_places=4)
+    Whole numbers (tokens)        → IntegerField()
+    True/False                    → BooleanField()
+    JSON data (artifacts_produced)→ JSONField()
+    UUID primary key              → UUIDField(primary_key=True,
+                                              default=uuid.uuid4,
+                                              editable=False)
+
+---
+Gotcha: auto_now_add vs manually set DateTimeField
+
+  started_at = models.DateTimeField(auto_now_add=True)  ❌ WRONG
+  started_at = models.DateTimeField()                   ✅ CORRECT
+
+  Why wrong?
+  auto_now_add sets the time when the DB record is CREATED.
+  But an AgentRun record might be created in the database BEFORE
+  the agent actually starts running.
+
+  We want to set started_at manually at the exact moment the
+  agent begins — not when the DB row was inserted.
+
+  Rule: auto_now_add is for "when was this record born?"
+        Plain DateTimeField() is for "when did this EVENT happen?"
+        — set it yourself in code when the event actually occurs.
+
+---
+
+  Why UUIDField as primary key instead of Django's default AutoField (integer ID like 1,
+   2, 3...)?
+
+
+     1. Sequential integers leak information
+  /api/tickets/1/   → "you're our first customer"
+  /api/tickets/847/ → "you've created 847 tickets"
+  UUID: /api/tickets/550e8400-e29b-41d4-a716-446655440000/ → reveals nothing.
+
+  2. UUIDs are globally unique
+  If you ever merge two databases (two companies, two environments) — integer IDs
+  COLLIDE. Ticket 1 from DB A vs Ticket 1 from DB B = conflict.
+  UUID from DB A vs UUID from DB B = zero chance of collision. Ever.

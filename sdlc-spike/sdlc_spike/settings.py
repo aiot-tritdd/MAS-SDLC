@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+# super user
+# tritdd - pass: 54321
+
 from pathlib import Path
 from dotenv import load_dotenv
 import os

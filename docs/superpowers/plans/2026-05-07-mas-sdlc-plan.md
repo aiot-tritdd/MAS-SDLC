@@ -190,7 +190,7 @@ REST_FRAMEWORK = {
 }
 ```
 
-- [ ] **Step 1.4: Configure root URLs** ⬅️ NEXT SESSION STARTS HERE
+- [x] **Step 1.4: Configure root URLs**
 
 ```python
 # sdlc_spike/urls.py
@@ -219,7 +219,7 @@ python manage.py runserver
 
 Expected: `Starting development server at http://127.0.0.1:8000/`
 
-- [ ] **Step 1.7: Initial git commit**
+- [x] **Step 1.7: Initial git commit**
 
 ```bash
 git init
@@ -245,7 +245,7 @@ git commit -m "chore: initial Django project setup"
 > "Draw the status state machine for a Ticket on paper before we code it."
 > Do NOT proceed until Wiganz can explain each choice.
 
-- [ ] **Step 2.1: Write the failing test first**
+- [x] **Step 2.1: Write the failing test first**
 
 ```python
 # core/tests/test_models.py
