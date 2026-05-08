@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDLC Roadmap — Quant Trading + Polymarket</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F6F3;
+    --card: #FFFFFE;
+    --border: #EEECE9;
+    --text: #2D2A26;
+    --text2: #5C5752;
+    --text3: #8A8580;
+    --muted: #B0ACA7;
+    --surface: #F2F0ED;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .top-bar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,254,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .top-bar h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 17px; letter-spacing: 0.01em;
+  }
+  .top-bar .sub {
+    font-size: 12px; color: var(--text3); margin-top: 1px;
+  }
+  .top-bar .counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--text3);
+    background: var(--surface); padding: 5px 12px; border-radius: 8px;
+  }
+
+  /* ── Nav Tabs ── */
+  .nav-strip {
+    position: sticky; top: 56px; z-index: 19;
+    display: flex; gap: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-strip::-webkit-scrollbar { height: 0; }
+  .nav-tab {
+    flex: 1 0 auto; min-width: 56px;
+    padding: 10px 6px 8px;
+    border: none; border-bottom: 3px solid transparent;
+    background: transparent; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-tab:hover { background: #FAFAF8; }
+  .nav-tab.active { border-bottom-color: var(--phase-color); background: var(--phase-light); }
+  .nav-tab .icon { font-size: 17px; }
+  .nav-tab .label {
+    font-size: 9.5px; font-weight: 600; color: var(--text3);
+    white-space: nowrap;
+  }
+  .nav-tab.active .label { color: var(--phase-color); font-weight: 700; }
+
+  /* ── Phase Content ── */
+  .phase-section { display: none; animation: fadeUp 0.3s ease; }
+  .phase-section.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hero */
+  .phase-hero {
+    padding: 30px 24px 26px;
+    position: relative; overflow: hidden;
+  }
+  .phase-hero .bg-emoji {
+    position: absolute; top: -25px; right: -15px;
+    font-size: 110px; opacity: 0.07; pointer-events: none;
+  }
+  .phase-hero .meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 6px; font-weight: 500;
+  }
+  .phase-hero h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px; line-height: 1.2; margin-bottom: 4px;
+  }
+  .phase-hero .tagline { font-size: 14.5px; color: var(--text2); }
+
+  /* Content wrapper */
+  .phase-body {
+    max-width: 660px; margin: 0 auto;
+    padding: 22px 20px 120px;
+  }
+
+  /* Card blocks */
+  .info-card {
+    padding: 16px 18px; border-radius: var(--radius);
+    background: var(--card); margin-bottom: 20px;
+    border: 1.5px solid var(--border);
+  }
+  .info-card.accent {
+    border-left: 4px solid var(--phase-color);
+    border-color: var(--phase-color-22);
+  }
+  .info-card.highlight {
+    background: var(--phase-light);
+    border-color: var(--phase-color-22);
+  }
+  .info-card.doc-card {
+    background: linear-gradient(135deg, #FFFBEB, #FFF8ED);
+    border: 1.5px solid #F59E0B33;
+    border-left: 4px solid #F59E0B;
+  }
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .card-text { font-size: 13.5px; color: var(--text2); line-height: 1.65; }
+
+  /* Task list */
+  .task-item {
+    border-radius: 12px; border: 1.5px solid var(--border);
+    background: #FAFAF8; overflow: hidden; margin-bottom: 8px;
+    transition: all 0.2s ease;
+  }
+  .task-item.open { border-color: var(--phase-color-44); background: var(--phase-color-08); }
+  .task-header {
+    width: 100%; padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border: none; background: none; cursor: pointer;
+    text-align: left; font-family: 'DM Sans', sans-serif;
+  }
+  .task-num {
+    width: 26px; height: 26px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    background: #E8E6E3; color: var(--text3);
+    transition: all 0.2s ease;
+  }
+  .task-item.open .task-num { background: var(--phase-color); color: #fff; }
+  .task-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+  .task-arrow {
+    font-size: 16px; color: var(--muted);
+    transition: transform 0.2s ease;
+  }
+  .task-item.open .task-arrow { transform: rotate(90deg); }
+  .task-detail {
+    display: none; padding: 0 16px 14px 54px;
+    font-size: 13px; color: var(--text2); line-height: 1.6;
+  }
+  .task-item.open .task-detail { display: block; animation: fadeUp 0.2s ease; }
+
+  /* Doc outputs */
+  .doc-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #F59E0B18;
+  }
+  .doc-item:last-child { border-bottom: none; }
+  .doc-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: #FEF3C7; color: #D97706;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; font-weight: 700;
+  }
+  .doc-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .doc-desc { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+  /* Tag chips */
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    font-size: 11.5px; padding: 4px 10px; border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+  }
+  .tag.tool { background: var(--surface); color: var(--text2); }
+  .tag.skill { font-family: 'DM Sans', sans-serif; font-weight: 600; }
+
+  /* Columns */
+  .cols { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .cols > div { flex: 1; min-width: 180px; }
+  .col-card {
+    padding: 14px 16px; border-radius: var(--radius);
+    background: var(--card); border: 1.5px solid var(--border);
+  }
+  .col-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+  }
+
+  /* Special blocks */
+  .special-block {
+    padding: 20px; border-radius: 16px;
+    text-align: center; margin-bottom: 20px;
+  }
+  .special-block .big-icon { font-size: 26px; margin-bottom: 6px; }
+  .special-block h3 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px; margin-bottom: 8px;
+  }
+  .special-block p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(255,255,254,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .btn {
+    padding: 10px 20px; border-radius: 10px;
+    font-weight: 600; font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.secondary {
+    border: 1.5px solid var(--border); background: var(--card); color: var(--text);
+  }
+  .btn.secondary:disabled { background: var(--bg); color: var(--muted); cursor: default; }
+  .btn.primary { border: none; color: #fff; }
+  .btn.primary:disabled { background: #E8E6E3 !important; color: var(--muted); cursor: default; }
+
+  /* Progress dots */
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dot {
+    height: 8px; border-radius: 4px;
+    border: none; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #E2E0DD;
+  }
+  .dot.active { width: 24px !important; }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .phase-hero h2 { font-size: 20px; }
+    .cols { flex-direction: column; }
+    .nav-tab { min-width: 48px; padding: 8px 4px 6px; }
+    .nav-tab .icon { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<div class="top-bar">
+  <div>
+    <h1>🗺️ SDLC Roadmap</h1>
+    <div class="sub">Quant Trading + Polymarket App • 4-6 tuần MVP + ongoing</div>
+  </div>
+  <div class="counter" id="counter">1 / 9</div>
+</div>
+
+<!-- ── Nav Tabs ── -->
+<div class="nav-strip" id="navStrip"></div>
+
+<!-- ── Phase Sections ── -->
+<div id="phasesContainer"></div>
+
+<!-- ── Bottom Nav ── -->
+<div class="bottom-nav">
+  <button class="btn secondary" id="prevBtn" onclick="go(-1)">← Prev</button>
+  <div class="dots" id="dots"></div>
+  <button class="btn primary" id="nextBtn" onclick="go(1)">Next →</button>
+</div>
+
+<script>
+const phases = [
+  {
+    icon: "💡", emoji: "🌱", title: "Ideation & Requirements",
+    tagline: "Biến ý tưởng mơ hồ → yêu cầu cụ thể",
+    color: "#E8890C", light: "#FFF8ED", mid: "#FDEBD0", duration: "2-3 ngày",
+    why: "Đây là bước bạn đang SKIP — và cũng là lý do bạn bị đứng hình. Không có requirements rõ ràng = không biết bắt đầu từ đâu.",
+    tasks: [
+      { name: "Problem Statement", detail: "App này giải quyết vấn đề gì? → Dùng AI prediction để đánh giá deals trên Polymarket" },
+      { name: "Target Users", detail: "Ai dùng? Bản thân? Traders khác? → Ảnh hưởng mọi quyết định sau này" },
+      { name: "Core Features (MoSCoW)", detail: "Must: prediction engine, Polymarket API, portfolio view. Should: backtesting. Won't (v1): mobile" },
+      { name: "User Stories", detail: '"Là trader, tui muốn xem AI prediction cho 1 market để quyết định có bet không"' },
+      { name: "MVP Scope", detail: "Chỉ 2-3 features cốt lõi. KHÔNG build hết. Solo devs hay chết ở đây." },
+    ],
+    tools: ["Notion", "Excalidraw", "Linear"],
+    skills: ["Product Thinking", "Problem Decomposition"],
+    projectExample: "MVP: (1) Fetch markets từ Polymarket (2) Chạy prediction model (3) Hiển thị kết quả + confidence score",
+    docs: [
+      { name: "PRD (Product Requirements Document)", desc: "Tài liệu mô tả sản phẩm: vấn đề, users, features, MVP scope, success metrics" },
+      { name: "User Stories Document", desc: "Danh sách user stories theo format: 'Là [role], tui muốn [action], để [benefit]'" },
+      { name: "MoSCoW Feature List", desc: "Bảng phân loại features: Must / Should / Could / Won't have" },
+    ],
+  },
+  {
+    icon: "🏗️", emoji: "🌿", title: "System Design",
+    tagline: "Kiến trúc hệ thống — cái gì nối với cái gì",
+    color: "#7C3AED", light: "#F5F0FF", mid: "#E9DEFA", duration: "2-4 ngày",
+    why: "Vẽ bản thiết kế tổng: FE, BE, DB, APIs giao tiếp với nhau thế nào. Giống bản vẽ kiến trúc trước khi xây nhà.",
+    tasks: [
+      { name: "Architecture Diagram", detail: "User → React FE → FastAPI BE → PostgreSQL → Polymarket API + ML Service" },
+      { name: "Chọn Tech Stack", detail: "FE: React + Tailwind | BE: FastAPI (Python!) | DB: PostgreSQL | ML: XGBoost | Deploy: Railway" },
+      { name: "API Design", detail: "GET /markets, GET /predictions/{id}, POST /bets, GET /portfolio" },
+      { name: "Data Flow", detail: "Polymarket API → BE fetch → Process → Store DB → Serve to FE" },
+      { name: "Integration Points", detail: "Polymarket API, ML service. V1: KHÔNG cần message queue — keep simple" },
+    ],
+    tools: ["Excalidraw", "dbdiagram.io", "Swagger"],
+    skills: ["System Design basics", "API Design", "Data Modeling"],
+    projectExample: "React FE → FastAPI BE → PostgreSQL + Redis cache → Polymarket API + ML microservice",
+    docs: [
+      { name: "Architecture Diagram", desc: "Sơ đồ tổng thể: FE, BE, DB, external APIs, cách chúng kết nối" },
+      { name: "Tech Stack Decision Record", desc: "Ghi lại lý do chọn từng technology và alternatives đã cân nhắc" },
+      { name: "API Specification (OpenAPI/Swagger)", desc: "Danh sách endpoints, methods, request/response format, auth" },
+      { name: "Data Flow Diagram", desc: "Data đi từ đâu → đến đâu → qua những service nào" },
+    ],
+  },
+  {
+    icon: "🎨", emoji: "🌸", title: "UI/UX Design",
+    tagline: "Thiết kế giao diện & trải nghiệm người dùng",
+    color: "#DB2777", light: "#FFF0F6", mid: "#FCE0EF", duration: "3-5 ngày",
+    why: "Design layout, components, user flow TRƯỚC khi code. Skip bước này = FE lộn xộn, refactor hoài.",
+    tasks: [
+      { name: "User Flow", detail: "Login → Dashboard → Market Detail (prediction + chart) → Place Bet → Portfolio" },
+      { name: "Wireframe (Lo-fi)", detail: "Vẽ bằng giấy hoặc Excalidraw. KHÔNG cần đẹp — chỉ cần biết cái gì ở đâu" },
+      { name: "Component List", detail: "MarketCard, PredictionChart, BetForm, PortfolioTable, Navbar, Sidebar..." },
+      { name: "Design System", detail: "2-3 màu chính, 1 font heading, 1 font body, 4px spacing grid" },
+      { name: "Mockup (optional)", detail: "Figma hoặc nhờ Claude generate UI prototype!" },
+    ],
+    tools: ["Figma", "Excalidraw", "Coolors.co"],
+    skills: ["Basic UI/UX", "Wireframing", "Design Systems"],
+    projectExample: "Dashboard: Header + Sidebar. Main: Grid of MarketCards (title, odds, AI prediction, confidence bar)",
+    docs: [
+      { name: "User Flow Diagram", desc: "Sơ đồ các bước user đi qua từ mở app → hoàn thành goal" },
+      { name: "Wireframes (Lo-fi & Hi-fi)", desc: "Bản vẽ layout từng trang: đâu là header, sidebar, main content..." },
+      { name: "Component Inventory", desc: "Danh sách tất cả UI components cần build + mô tả chức năng" },
+      { name: "Design System / Style Guide", desc: "Colors, typography, spacing, border-radius, shadows — tất cả quy tắc visual" },
+    ],
+  },
+  {
+    icon: "🗄️", emoji: "🪨", title: "Database Design",
+    tagline: "Thiết kế cơ sở dữ liệu — bảng, cột, quan hệ",
+    color: "#0891B2", light: "#EEFBFF", mid: "#D5F5FC", duration: "1-2 ngày",
+    why: "Schema tốt = code BE dễ. Schema tệ = đau đầu mãi mãi. Làm TRƯỚC khi code BE.",
+    tasks: [
+      { name: "Entities", detail: "User, Market, Prediction, Bet, Portfolio, Transaction" },
+      { name: "ER Diagram", detail: "User 1→N Bets, Market 1→N Predictions, User 1→1 Portfolio" },
+      { name: "Schema chi tiết", detail: "markets(id, title, polymarket_id, category, close_date, current_odds)" },
+      { name: "Migration Strategy", detail: "Alembic (FastAPI) — version control cho DB changes" },
+    ],
+    tools: ["dbdiagram.io", "DBeaver", "Alembic"],
+    skills: ["Database Design", "SQL", "Normalization"],
+    projectExample: "Core: users, markets, predictions(market_id, probability, confidence, created_at), bets, positions",
+    docs: [
+      { name: "ER Diagram", desc: "Sơ đồ quan hệ giữa các entities: 1-1, 1-N, N-N" },
+      { name: "Schema Definition", desc: "Chi tiết từng bảng: columns, data types, constraints, indexes" },
+      { name: "Migration Plan", desc: "Thứ tự tạo bảng, seed data, rollback strategy" },
+    ],
+  },
+  {
+    icon: "⚙️", emoji: "🔧", title: "Backend Implementation",
+    tagline: "Code server — API, logic, data pipeline",
+    color: "#059669", light: "#EDFDF5", mid: "#D1FAE5", duration: "1-2 tuần",
+    why: "Build API, business logic, ML pipeline. Đây là sở trường Python của bạn — phase này bạn sẽ fly!",
+    tasks: [
+      { name: "Project Setup", detail: "Init FastAPI, folder structure, env config, DB connection" },
+      { name: "CRUD APIs", detail: "Markets, Users auth (JWT), Predictions, Bets endpoints" },
+      { name: "Polymarket Integration", detail: "Fetch markets, sync prices, handle polling" },
+      { name: "ML Pipeline", detail: "Data → Feature engineering → Model training → Prediction endpoint" },
+      { name: "Testing", detail: "Unit tests + integration tests. Dùng pytest." },
+    ],
+    tools: ["FastAPI", "SQLAlchemy", "pytest", "Docker"],
+    skills: ["Python", "REST API", "ML basics", "Testing"],
+    projectExample: "Week 1: Auth + Markets + Polymarket sync. Week 2: ML pipeline + Bets logic + Tests",
+    docs: [
+      { name: "README.md", desc: "Setup guide: cách install, chạy local, env variables cần config" },
+      { name: "API Documentation (auto-gen)", desc: "FastAPI auto-gen Swagger docs tại /docs — giữ updated" },
+      { name: "Code Architecture Notes", desc: "Folder structure, naming conventions, patterns đang dùng" },
+      { name: "Test Coverage Report", desc: "Báo cáo test: bao nhiêu % code được cover, critical paths" },
+    ],
+  },
+  {
+    icon: "🖥️", emoji: "🎭", title: "Frontend Implementation",
+    tagline: "Code giao diện — UI theo design đã có",
+    color: "#EA580C", light: "#FFF7ED", mid: "#FDEAD7", duration: "1-2 tuần",
+    why: "Build UI theo Phase 3 design. Connect với BE API. Bạn đang yếu React — đây là cơ hội luyện!",
+    tasks: [
+      { name: "Project Setup", detail: "Vite + React, Tailwind, routing, folder structure" },
+      { name: "Build Components", detail: "Theo component list: MarketCard → PredictionChart → BetForm..." },
+      { name: "State Management", detail: "React Query (server state) + Zustand (client state). ĐỪNG overengineer" },
+      { name: "API Integration", detail: "Fetch markets, display predictions, submit bets" },
+      { name: "Polish", detail: "Responsive, loading states, error handling, animations" },
+    ],
+    tools: ["React + Vite", "TailwindCSS", "React Query", "Recharts"],
+    skills: ["React", "Tailwind", "API consumption", "State mgmt"],
+    projectExample: "Week 1: Layout + Dashboard + MarketCard. Week 2: Prediction view + BetForm + Portfolio",
+    docs: [
+      { name: "Component Storybook / Docs", desc: "Document mỗi component: props, usage, variants" },
+      { name: "State Management Map", desc: "Sơ đồ: data nào ở đâu (server state vs client state)" },
+      { name: "FE README.md", desc: "Setup guide, folder structure, coding conventions cho FE" },
+    ],
+  },
+  {
+    icon: "🧪", emoji: "🔍", title: "Testing & QA",
+    tagline: "Kiểm tra — tìm bug, fix, optimize",
+    color: "#DC2626", light: "#FEF2F2", mid: "#FECACA", duration: "3-5 ngày",
+    why: "Test full flow, edge cases, performance, security. Bước này quyết định app có pro hay không.",
+    tasks: [
+      { name: "E2E Testing", detail: "Full flow: đăng ký → xem market → prediction → bet → portfolio" },
+      { name: "Edge Cases", detail: "Market closed? API down? Sai input? No data? Xử lý hết." },
+      { name: "Performance", detail: "API response time, FE load, optimize queries, lazy loading" },
+      { name: "Security", detail: "Input validation, SQL injection, CORS, rate limiting" },
+    ],
+    tools: ["Playwright", "Lighthouse", "Postman"],
+    skills: ["Testing mindset", "Debugging", "Security basics"],
+    projectExample: "Day 1-2: E2E. Day 3: Edge cases. Day 4: Performance. Day 5: Security",
+    docs: [
+      { name: "Test Plan", desc: "Danh sách tất cả test cases cần chạy, chia theo feature" },
+      { name: "Bug Report Log", desc: "Tracking bugs: severity, steps to reproduce, status, assignee" },
+      { name: "Performance Benchmark", desc: "Đo lường: API latency, FE load time, Lighthouse score" },
+      { name: "Security Checklist", desc: "OWASP top 10 items đã check: XSS, CSRF, SQL injection..." },
+    ],
+  },
+  {
+    icon: "🚀", emoji: "✨", title: "Deploy & Launch",
+    tagline: "Đưa app lên internet — cho thế giới thấy!",
+    color: "#4F46E5", light: "#EEF2FF", mid: "#DDD6FE", duration: "2-3 ngày",
+    why: "Ship it! Deploy, monitor, launch. Không deploy = app chưa tồn tại. Đây là đích đến.",
+    tasks: [
+      { name: "CI/CD", detail: "GitHub Actions: auto test + deploy khi push to main" },
+      { name: "Deploy Backend", detail: "Railway / Render → DB, env vars, domain" },
+      { name: "Deploy Frontend", detail: "Vercel → Connect API, custom domain" },
+      { name: "Monitoring", detail: "Sentry (errors), logging, health check endpoint" },
+      { name: "Launch!", detail: "Share LinkedIn, Twitter, Reddit. Thu feedback. Iterate." },
+    ],
+    tools: ["GitHub Actions", "Railway", "Vercel", "Sentry"],
+    skills: ["DevOps basics", "CI/CD", "Cloud deploy"],
+    projectExample: "Day 1: CI/CD + BE deploy. Day 2: FE deploy + domain. Day 3: Monitor + soft launch",
+    docs: [
+      { name: "Deployment Guide", desc: "Step-by-step: cách deploy BE, FE, DB từ scratch" },
+      { name: "Environment Config", desc: "Danh sách tất cả env variables cần set ở mỗi environment" },
+      { name: "CI/CD Pipeline Doc", desc: "Mô tả pipeline: trigger → build → test → deploy → notify" },
+      { name: "Runbook", desc: "Hướng dẫn xử lý incidents: app down, DB full, API errors..." },
+    ],
+  },
+  {
+    icon: "🔄", emoji: "🌊", title: "Maintenance & Iteration",
+    tagline: "Duy trì, cải thiện, và phát triển liên tục",
+    color: "#0D9488", light: "#F0FDFA", mid: "#CCFBF1", duration: "Ongoing ♾️",
+    why: "App launch xong KHÔNG phải là hết. 80% thời gian sản phẩm nằm ở đây. Thu feedback, fix bugs, thêm features, giữ app sống.",
+    tasks: [
+      { name: "Bug Tracking & Fixing", detail: "Thu bug reports từ users + Sentry alerts. Ưu tiên: Critical → High → Medium → Low" },
+      { name: "User Feedback Loop", detail: "Thu feedback qua survey, analytics, support. Biến feedback → feature requests có ưu tiên" },
+      { name: "Performance Monitoring", detail: "Theo dõi API response time, error rates, uptime. Alerts khi vượt ngưỡng" },
+      { name: "Feature Iteration", detail: "Feedback → plan features mới → quay lại Phase 1 cho feature đó. Đây là 'cycle'!" },
+      { name: "Tech Debt & Refactoring", detail: "Code v1 sẽ xấu — OK. Nhưng dành thời gian refactor, update dependencies" },
+      { name: "Documentation Updates", detail: "Cập nhật tất cả docs khi có changes. Tương lai bạn sẽ cảm ơn hiện tại bạn" },
+    ],
+    tools: ["Sentry", "Google Analytics", "GitHub Issues", "Notion"],
+    skills: ["Monitoring", "Prioritization", "Refactoring", "User Research"],
+    projectExample: "Ongoing: Monitor prediction accuracy → feedback → improve ML → thêm backtesting → update docs",
+    docs: [
+      { name: "Changelog", desc: "Log mọi thay đổi theo version: v1.0.1, v1.1.0... (semver)" },
+      { name: "Feedback & Feature Backlog", desc: "Danh sách tất cả feedback + feature requests, có priority" },
+      { name: "Post-mortem Reports", desc: "Khi có incident: what happened, root cause, how to prevent" },
+      { name: "Updated Documentation", desc: "Tất cả docs từ Phase 1-8 được cập nhật theo changes mới nhất" },
+    ],
+  },
+];
+
+let current = 0;
+
+function render() {
+  // Nav tabs
+  const nav = document.getElementById('navStrip');
+  nav.innerHTML = phases.map((p, i) => `
+    <button class="nav-tab ${i === current ? 'active' : ''}"
+      style="--phase-color:${p.color};--phase-light:${p.light}"
+      onclick="goTo(${i})">
+      <span class="icon">${p.icon}</span>
+      <span class="label">P${i+1}</span>
+    </button>
+  `).join('');
+
+  // Dots
+  const dots = document.getElementById('dots');
+  dots.innerHTML = phases.map((p, i) => `
+    <button class="dot ${i === current ? 'active' : ''}"
+      style="width:${i === current ? 24 : 8}px;background:${i === current ? p.color : i < current ? p.color + '55' : '#E2E0DD'}"
+      onclick="goTo(${i})"></button>
+  `).join('');
+
+  // Counter
+  document.getElementById('counter').textContent = `${current + 1} / ${phases.length}`;
+
+  // Buttons
+  const p = phases[current];
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === phases.length - 1;
+  nextBtn.style.background = current < phases.length - 1
+    ? `linear-gradient(135deg, ${p.color}, ${p.color}CC)` : '';
+  nextBtn.style.boxShadow = current < phases.length - 1
+    ? `0 3px 12px ${p.color}33` : 'none';
+
+  // Phase content
+  const container = document.getElementById('phasesContainer');
+  container.innerHTML = phases.map((p, i) => {
+    const cssVars = `--phase-color:${p.color};--phase-light:${p.light};--phase-color-22:${p.color}22;--phase-color-44:${p.color}44;--phase-color-08:${p.color}08`;
+    return `
+    <div class="phase-section ${i === current ? 'active' : ''}" style="${cssVars}">
+      <!-- Hero -->
+      <div class="phase-hero" style="background:linear-gradient(135deg,${p.light},${p.mid}55)">
+        <div class="bg-emoji">${p.emoji}</div>
+        <div class="meta" style="color:${p.color}">Phase ${i+1} of ${phases.length} • ⏱️ ${p.duration}</div>
+        <h2>${p.icon} ${p.title}</h2>
+        <div class="tagline">${p.tagline}</div>
+      </div>
+
+      <div class="phase-body">
+        <!-- Why -->
+        <div class="info-card accent">
+          <div class="card-label" style="color:${p.color}">⚡ Tại sao bước này quan trọng</div>
+          <div class="card-text">${p.why}</div>
+        </div>
+
+        <!-- Tasks -->
+        <div style="margin-bottom:20px">
+          <h3 style="font-family:'Archivo Black',sans-serif;font-size:15px;margin-bottom:12px">📋 Checklist — Cần làm gì?</h3>
+          ${p.tasks.map((t, j) => `
+            <div class="task-item" id="task-${i}-${j}" onclick="toggleTask(${i},${j})">
+              <button class="task-header">
+                <span class="task-num">${j+1}</span>
+                <span class="task-name">${t.name}</span>
+                <span class="task-arrow">›</span>
+              </button>
+              <div class="task-detail">→ ${t.detail}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 📄 Documentation Outputs -->
+        <div class="info-card doc-card">
+          <div class="card-label" style="color:#D97706">📄 Documentation Output — Phase này cần tạo gì?</div>
+          ${p.docs.map((d, j) => `
+            <div class="doc-item">
+              <div class="doc-icon">${j+1}</div>
+              <div>
+                <div class="doc-name">${d.name}</div>
+                <div class="doc-desc">${d.desc}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Project Example -->
+        <div class="info-card highlight">
+          <div class="card-label" style="color:${p.color}">🎯 Ví dụ: Quant Trading App</div>
+          <div class="card-text">${p.projectExample}</div>
+        </div>
+
+        <!-- Tools & Skills -->
+        <div class="cols">
+          <div>
+            <div class="col-card">
+              <div class="col-label">🛠️ Tools</div>
+              <div class="tags">${p.tools.map(t => `<span class="tag tool">${t}</span>`).join('')}</div>
+            </div>
+          </div>
+          <div>
+            <div class="col-card">
+              <div class="col-label">🧠 Skills cần có</div>
+              <div class="tags">${p.skills.map(s => `<span class="tag skill" style="background:${p.color}12;color:${p.color}">${s}</span>`).join('')}</div>
+            </div>
+          </div>
+        </div>
+
+        ${i === 0 ? `
+        <div class="special-block" style="background:linear-gradient(135deg,#FFF8ED,#F5F0FF);border:1.5px solid #E8890C22">
+          <div class="big-icon">💎</div>
+          <h3 style="color:#E8890C">Golden Rule cho Solo Developer</h3>
+          <p>Không cần hoàn hảo mỗi phase.<br>Chỉ cần <strong>đi qua MỖI phase ít nhất 1 lần</strong>.<br>Lần đầu sẽ xấu. Lần hai khá hơn. Lần ba tự nhiên.<br><strong style="color:#E8890C">Cần KINH NGHIỆM ĐI HẾT CYCLE, không phải perfection.</strong></p>
+        </div>` : ''}
+
+        ${i === phases.length - 1 ? `
+        <div class="special-block" style="background:linear-gradient(135deg,#F0FDFA,#EEF2FF);border:1.5px solid #0D948822">
+          <div class="big-icon">🔄</div>
+          <h3 style="color:#0D9488">Đây là lý do nó gọi là "CYCLE"</h3>
+          <p>Khi có feature mới hoặc feedback từ users →<br><strong>Quay lại Phase 1</strong> cho feature đó.<br>Mỗi vòng lặp, bạn sẽ nhanh hơn, giỏi hơn, tự tin hơn.<br><strong style="color:#0D9488">Phase 1 → 9 → Phase 1 → 9 → ... ♾️ Đó là đời dev!</strong></p>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function goTo(idx) {
+  current = idx;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function go(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < phases.length) goTo(next);
+}
+
+function toggleTask(phaseIdx, taskIdx) {
+  const el = document.getElementById(`task-${phaseIdx}-${taskIdx}`);
+  if (el) el.classList.toggle('open');
+}
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+
+// Swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+document.addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].screenX;
+  if (Math.abs(diff) > 60) go(diff > 0 ? 1 : -1);
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>

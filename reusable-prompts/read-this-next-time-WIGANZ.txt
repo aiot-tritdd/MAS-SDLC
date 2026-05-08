@@ -1,0 +1,12 @@
+M đang định nói với claude là giờ m đã có ADD được thống nhất về tech stack, decisions và mọi thứ rồi nó nằm trong cái docs rồi. Sau đó m cũng đã nói rằng là
+1. Gemini.md là thằng ruach-el chuyển gia chỉ m coding đúng không ? 
+2. specs-0 là cái spike claude web generate cho m không phải là superpower đâu nhé 
+3.learning-guides: cái này sẽ là cái learning guide để mà claude biết để hướng dẫn m đó
+4. plans: cái này alf cái plán ban đầu claude định làm ra để chỉ m từng bước làm cái quant app á 
+
+
+Hiện tại cái m muốn là combine gemini.md + plans (cần chỉnh lại cho project MAS-SDLC này) + specs-0 (cần chỉnh lại cho project MAS-SDLC này) 
+cái learning guide cũng cần chỉnh lại cho cái SDLC này. Có nghĩa là ruach-el phải là người hướng dẫn m làm cái prj này dựa trên PLANS và SPECS-0 
+những cái sẽ được chỉnh sửa lại. Cái đống này chỉ copy qua cho đẹp thôi nhưng nội dung và cốt lõi của tụi nó là sự chỉ dẫn của CLAUDE mà m mong muốn đó nhé
+
+Lần sau sửa đống đó lại rồi mới bắt đầu làm

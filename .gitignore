@@ -1,0 +1,17 @@
+# External reference repos — read-only, not part of MAS-SDLC source
+docs/paperclip-reference/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets
+.env
+
+# Mac system files
+.DS_Store
+
+# VS Code local settings
+.vscode/
