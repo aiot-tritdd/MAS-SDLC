@@ -278,7 +278,7 @@ class TicketModelTest(TestCase):
         self.assertEqual(ticket.priority, 'medium')
 ```
 
-- [ ] **Step 2.2: Run tests — verify they FAIL**
+- [x] **Step 2.2: Run tests — verify they FAIL**
 
 ```bash
 python manage.py test core.tests.test_models -v 2
@@ -286,7 +286,7 @@ python manage.py test core.tests.test_models -v 2
 
 Expected: `ImportError: cannot import name 'Ticket' from 'core.models'`
 
-- [ ] **Step 2.3: Wiganz implements the Ticket model**
+- [x] **Step 2.3: Wiganz implements the Ticket model**
 
 > 🎯 **Ruach-El:** Guide Wiganz field by field. For each field, ask WHY before they type it.
 > "What is the Ticket status state machine? What are all the valid states?"
@@ -330,14 +330,14 @@ class Ticket(models.Model):
         return self.title
 ```
 
-- [ ] **Step 2.4: Run migrations**
+- [x] **Step 2.4: Run migrations**
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-- [ ] **Step 2.5: Run tests — verify they PASS**
+- [x] **Step 2.5: Run tests — verify they PASS**
 
 ```bash
 python manage.py test core.tests.test_models -v 2
@@ -345,7 +345,7 @@ python manage.py test core.tests.test_models -v 2
 
 Expected: `5 tests passed`
 
-- [ ] **Step 2.6: Commit**
+- [x] **Step 2.6: Commit**
 
 ```bash
 git add core/models.py core/tests/test_models.py core/migrations/
@@ -366,7 +366,7 @@ git commit -m "feat: Ticket model with UUID pk, status choices, paperclip_issue_
 > "If a Ticket is deleted, what should happen to its Artifacts and AgentRuns? CASCADE or PROTECT — which and why?"
 > Do NOT proceed until Wiganz can explain each.
 
-- [ ] **Step 3.1: Write failing tests**
+- [x] **Step 3.1: Write failing tests**
 
 ```python
 # Add to core/tests/test_models.py
@@ -424,7 +424,7 @@ class AgentRunModelTest(TestCase):
         self.assertEqual(run.completion_tokens, 0)
 ```
 
-- [ ] **Step 3.2: Run — verify FAIL**
+- [x] **Step 3.2: Run — verify FAIL**
 
 ```bash
 python manage.py test core.tests.test_models -v 2
@@ -432,7 +432,7 @@ python manage.py test core.tests.test_models -v 2
 
 Expected: `ImportError: cannot import name 'Artifact' from 'core.models'`
 
-- [ ] **Step 3.3: Wiganz implements Artifact and AgentRun models**
+- [x] **Step 3.3: Wiganz implements Artifact and AgentRun models**
 
 > 🎯 **Ruach-El:** Guide field by field. After both models are written:
 > "What is `JSONField(default=list)`? Why do we use a callable `list` instead of `[]` as the default?"
@@ -482,7 +482,7 @@ class AgentRun(models.Model):
         return f"{self.agent_name} — {self.ticket.title} ({self.status})"
 ```
 
-- [ ] **Step 3.4: Migrate + run all model tests — verify PASS**
+- [x] **Step 3.4: Migrate + run all model tests — verify PASS**
 
 ```bash
 python manage.py makemigrations && python manage.py migrate
@@ -491,7 +491,7 @@ python manage.py test core.tests.test_models -v 2
 
 Expected: `12 tests passed`
 
-- [ ] **Step 3.5: Register all 3 models in Django admin**
+- [x] **Step 3.5: Register all 3 models in Django admin**
 
 ```python
 # core/admin.py
@@ -512,7 +512,7 @@ class AgentRunAdmin(admin.ModelAdmin):
     list_display = ['agent_name', 'ticket', 'status', 'estimated_cost_usd', 'started_at']
 ```
 
-- [ ] **Step 3.6: Create superuser + verify admin**
+- [x] **Step 3.6: Create superuser + verify admin**
 
 ```bash
 python manage.py createsuperuser
@@ -520,7 +520,7 @@ python manage.py runserver
 # Visit http://localhost:8000/admin/ — should see all 3 models
 ```
 
-- [ ] **Step 3.7: Commit**
+- [x] **Step 3.7: Commit**
 
 ```bash
 git add core/models.py core/admin.py core/tests/test_models.py core/migrations/
@@ -542,7 +542,7 @@ git commit -m "feat: Artifact and AgentRun models + admin registration"
 > "Why ModelViewSet instead of just a plain Django view function?"
 > "What's the difference between router.register() and manual path() entries?"
 
-- [ ] **Step 4.1: Write failing API tests**
+- [ ] **Step 4.1: Write failing API tests** ⬅️ NEXT SESSION STARTS HERE
 
 ```python
 # core/tests/test_views.py
