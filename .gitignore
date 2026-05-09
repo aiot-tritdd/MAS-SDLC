@@ -15,3 +15,7 @@ __pycache__/
 
 # VS Code local settings
 .vscode/
+
+# Personal learning notes — local only
+MAS-SDLC-learning.txt
+MAS-SDLC-mistakes.txt
