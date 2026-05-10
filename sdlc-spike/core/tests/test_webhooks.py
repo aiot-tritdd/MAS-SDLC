@@ -9,18 +9,19 @@ class PaperclipStatusWebhookTest(TestCase):
         self.ticket = Ticket.objects.create(
             title="Fix login bug",
             description="OAuth flow broken",
+            status="new",
             paperclip_issue_id="pp-123",
         )
 
     def test_webhook_returns_200(self):
-        payload = {"event": "issue.updated", "issue_id": "pp-123", "status": "in_progress"}
+        payload = {"event": "issue.updated", "issue_id": "pp-123", "new_status": "in_progress"}
         response = self.client.post(
             "/api/webhooks/paperclip/status/", payload, format="json"
         )
         self.assertEqual(response.status_code, 200)
 
     def test_webhook_updates_ticket_status(self):
-        payload = {"event": "issue.updated", "issue_id": "pp-123", "status": "in_progress"}
+        payload = {"event": "issue.updated", "issue_id": "pp-123", "new_status": "in_progress"}
         self.client.post("/api/webhooks/paperclip/status/", payload, format="json")
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.status, "in_progress")
@@ -39,6 +40,7 @@ class PaperclipArtifactWebhookTest(TestCase):
         self.ticket = Ticket.objects.create(
             title="Fix login bug",
             description="OAuth flow broken",
+            status="new",
             paperclip_issue_id="pp-123",
         )
 

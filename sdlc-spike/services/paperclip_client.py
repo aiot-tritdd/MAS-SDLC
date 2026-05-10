@@ -20,6 +20,5 @@ class PaperclipClient:
         data = response.json()
         ticket.paperclip_issue_id = data['id']
         ticket.save(update_fields=['paperclip_issue_id'])
-        print(f"Ticket {ticket.id} synced to Paperclip as issue {ticket.paperclip_issue_id}")
         return data
         
