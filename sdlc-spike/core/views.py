@@ -4,11 +4,17 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from core.tasks import sync_ticket_to_paperclip
 
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all().order_by("-created_at")
     serializer_class = TicketSerializer
+
+    def perform_create(self, serializer):
+        ticket = serializer.save()
+        sync_ticket_to_paperclip.delay(str(ticket.id))
+
 
 @api_view(["POST"])
 def paperclip_webhook(request):
