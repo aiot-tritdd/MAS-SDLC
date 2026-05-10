@@ -20,7 +20,7 @@ class TicketViewSet(viewsets.ModelViewSet):
 def paperclip_status_webhook(request):
     data = request.data
     issue_id = data.get("issue_id")
-    new_status = data.get("status")
+    new_status = data.get("new_status")
     ticket = get_object_or_404(Ticket, paperclip_issue_id=issue_id)
     ticket.status = new_status
     ticket.save(update_fields=["status"])
