@@ -6,6 +6,7 @@ from services.paperclip_client import PaperclipClient
 class PaperClipClientTest(TestCase):
     @patch('services.paperclip_client.requests.post')
     def test_sync_ticket_creates_paperclip_issues(self, mock_post):
+        # ~ Mimic what the Paperclip API returns when creating an issue
         mock_post.return_value.json.return_value = {"id": "pp-issues-123"}
         mock_post.return_value.status_code = 201
 
@@ -15,8 +16,9 @@ class PaperClipClientTest(TestCase):
             status=Ticket.Status.NEW,
             priority=Ticket.Priority.MEDIUM,
         )
-        
+        # ~ Instantiate the client
         client = PaperclipClient()
+        # ~ Run the method under test
         result = client.sync_ticket(ticket)
 
         self.assertEqual(result['id'], 'pp-issues-123')
