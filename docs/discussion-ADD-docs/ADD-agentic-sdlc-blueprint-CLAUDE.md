@@ -354,3 +354,70 @@ Start manually-triggered. Build trust. Automate incrementally. Ship the factory 
 — Proverbs 15:22
 
 *Built with Code **&** Grace* 🕊️
+
+---
+
+## 10. Course Correction — May 2026
+
+> *"See, I am doing a new thing!"* — Isaiah 43:19
+
+### 10.1 What we got wrong
+
+We built a Django-centric spike assuming Django was the brain and Paperclip was the hands. We built Ticket models, CRUD APIs, Celery task chains, webhook endpoints — reimplementing infrastructure that Paperclip already provides.
+
+This was wrong. A deep source-code analysis of the full Paperclip repository (`server/src/` — 4000+ line services, heartbeat engine, execution workspaces, skills system, adapter registry) revealed the truth.
+
+### 10.2 The five wrong assumptions
+
+| Wrong assumption | Reality |
+|---|---|
+| "Django = business logic layer" | Paperclip IS the business logic — issue lifecycle, CEO decomposition, agent execution |
+| "Paperclip pushes status to Django via webhooks" | Paperclip uses routine webhook triggers for inbound + heartbeat for internal — no outbound push needed |
+| "Django adapter layer abstracts the runtime" | Paperclip's adapter registry already does this — 11 adapters (claude, codex, cursor, gemini, hermes, http, process...) |
+| "Celery task chains for pipeline" | CEO agent + heartbeat IS the pipeline — natively |
+| "Django REST API for ticket CRUD" | Paperclip's issue system IS the ticket system — backlog → todo → in_progress → in_review → done |
+
+### 10.3 What Paperclip actually is
+
+Paperclip is not a scheduler. It is not a task queue wrapper. It is a full **agent orchestration OS**:
+
+- **Issues** — the unit of work. Full lifecycle with checkout/locking preventing concurrent work
+- **CEO agent** — decomposes company goals into sub-issues natively
+- **Heartbeat protocol** — 9-step execution cycle: identity → assignments → checkout → work → delegate → update → exit
+- **Execution workspaces** — isolated per-issue git worktrees. Agents work in parallel without collision
+- **Skills system** — SKILL.md files loaded on demand. Agent behavior defined in plain text, not code
+- **Adapter registry** — 11 AI backends swappable without changing the pipeline
+- **Approval gates** — built into the issue lifecycle. Human review pauses and resumes the flow natively
+- **Routine webhook triggers** — Sentry/GitHub/Grafana webhooks fire directly into Paperclip routines
+- **Plugin system** — sandboxed via Node.js `vm.runInNewContext` for genuine isolation
+- **Budget tracking, RBAC, activity logs, audit trails** — all built in
+
+### 10.4 Corrected architecture
+
+**Paperclip = everything.** The 13-step loop runs entirely inside Paperclip:
+- Steps 1–12: Native. Issues, agents, skills, execution workspaces, approval gates, GitHub PRs, GitHub Actions
+- Step 13 (Sentry → auto-ticket): Native. Routine webhook trigger receives Sentry event, agent parses payload, creates new issue
+
+**Django = pgvector only.** If and when semantic memory (vector search over codebase, design docs) is needed, Django provides it. Nothing else.
+
+### 10.5 What the blueprint got right
+
+The 13-step vision was correct. Human governance gates were correct. Budget control was correct. The infinite feedback loop was correct. Paperclip-as-orchestrator was correct.
+
+Only the boundary was wrong — we drew it too far into Django's territory. Paperclip owns that territory already.
+
+### 10.6 What to do with the existing Django spike
+
+| Component | Action |
+|---|---|
+| `PaperclipClient.sync_ticket()` | Keep — correct direction (Django calls Paperclip API) |
+| `Ticket` model | Delete — Paperclip IS the ticket system |
+| Webhook endpoints (receive FROM Paperclip) | Repurpose — should receive FROM Sentry/Grafana, then call Paperclip API |
+| `Artifact`, `AgentRun` models | Delete — Paperclip's activity logs + documents system covers this |
+| pgvector layer | Keep as future foundation — Django's real job |
+
+### 10.7 The new plan
+
+See `docs/superpowers/plans/2026-05-11-paperclip-first-plan.md` for the concrete phase-by-phase implementation plan.
+
+*"Unless the Lord builds the house, the builders labor in vain."* — Psalm 127:1
